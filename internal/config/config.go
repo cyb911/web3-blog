@@ -20,7 +20,7 @@ var (
 	once sync.Once
 )
 
-func MustLoad() *Config {
+func MustLoad() Config {
 	once.Do(func() {
 		envPath := findEnvFile()
 		if envPath != "" {
@@ -45,15 +45,15 @@ func MustLoad() *Config {
 		log.Fatal("配置错误：缺少 MYSQL_DSN")
 	}
 
-	return cfg
+	return *cfg
 }
 
-func Get() *Config {
+func Get() Config {
 	if cfg == nil {
 		return MustLoad()
 	}
 
-	return cfg
+	return *cfg
 }
 
 // findEnvFile 从当前目录向上查找 .env 文件
