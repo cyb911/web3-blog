@@ -79,6 +79,6 @@ func Login(c *gin.Context) {
 		panic(err)
 	}
 
-	utils.OkData(c, "登录成功！", token)
+	utils.OkData(c, "登录成功！", "Bearer "+token)
 
 }
