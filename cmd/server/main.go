@@ -1,10 +1,10 @@
 package main
 
 import (
+	"log"
 	"web-blog/internal/config"
 	"web-blog/internal/models"
-
-	"github.com/gin-gonic/gin"
+	"web-blog/internal/router"
 )
 
 func main() {
@@ -19,15 +19,12 @@ func main() {
 
 	cfg := config.Get()
 
-	router := gin.Default()
-	router.GET("/", func(c *gin.Context) {
-		c.String(200, "Hello World")
-	})
+	// 设置路由
+	r := router.SetupRouter()
 
-	router.Any("/login", func(c *gin.Context) {
-		c.String(200, "login")
-	})
-	err = router.Run(":" + cfg.AppPort)
+	log.Printf("Server listening on :%s", cfg.AppPort)
+
+	err = r.Run(":" + cfg.AppPort)
 	if err != nil {
 		panic(err)
 	}
