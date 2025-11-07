@@ -16,7 +16,7 @@ func CreatePost(c *gin.Context) {
 	utils.OkMsg(c, "待开发")
 }
 
-func ListPost(c *gin.Context) {
+func ListPosts(c *gin.Context) {
 	utils.OkMsg(c, "待开发")
 }
 

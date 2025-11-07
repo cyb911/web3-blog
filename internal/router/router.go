@@ -33,7 +33,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/api/login", handlers.Login)
 
 	// 文章查询
-	r.GET("/api/posts", handlers.ListPost)
+	r.GET("/api/posts", handlers.ListPosts)
 	r.GET("/api/posts/:id", handlers.GetPost)
 
 	// 评论信息
@@ -45,12 +45,15 @@ func SetupRouter() *gin.Engine {
 		//用户管理
 
 		// 文章管理
-		authGroup.POST("/posts", handlers.CreatePost)
-		authGroup.PUT("/posts/:id", handlers.UpdatePost)
-		authGroup.DELETE("/posts/:id", handlers.DeletePost)
+		postGroup := authGroup.Group("/posts")
+		{
+			postGroup.POST("", handlers.CreatePost)
+			postGroup.PUT("/:id", handlers.UpdatePost)
+			postGroup.DELETE("/:id", handlers.DeletePost)
 
-		// 登录用户评论
-		authGroup.POST("/comments", handlers.CreateComment)
+			// 登录用户评论
+			postGroup.POST("/:postId/comments", handlers.CreateComment)
+		}
 	}
 
 	return r
