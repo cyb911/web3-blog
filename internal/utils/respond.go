@@ -14,6 +14,10 @@ func OkMsg(c *gin.Context, msg string) {
 	c.JSON(http.StatusOK, gin.H{"code": "S00000", "msg": msg})
 }
 
+func OkData(c *gin.Context, msg string, data any) {
+	c.JSON(http.StatusOK, gin.H{"code": "S00000", "msg": msg, "data": data})
+}
+
 func Fail(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": -1, "msg": "Fail"})
 }

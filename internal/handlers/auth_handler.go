@@ -8,10 +8,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type RegisterReq struct {
 	Username string `json:"username" binding:"required,min=3,max=64"`
+	Email    string `json:"email"    binding:"required,email,max=128"`
+	Password string `json:"password" binding:"required,min=6,max=64"`
+}
+
+type LoginReq struct {
 	Email    string `json:"email"    binding:"required,email,max=128"`
 	Password string `json:"password" binding:"required,min=6,max=64"`
 }
@@ -45,5 +51,34 @@ func Register(c *gin.Context) {
 	}
 
 	utils.OkMsg(c, "注册成功！")
+
+}
+
+func Login(c *gin.Context) {
+	var req LoginReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.FailMsg(c, "P00001", err.Error())
+		return
+	}
+	var user models.User
+	if err := config.DB.Where("email = ? ", req.Email).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			utils.FailMsg(c, "P00003", "此邮箱号未注册！")
+			return
+		}
+		panic(err)
+	}
+
+	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) != nil {
+		utils.FailMsg(c, "P00003", "invalid credentials")
+		return
+	}
+
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	utils.OkData(c, "登录成功！", token)
 
 }

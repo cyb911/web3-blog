@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"time"
+	"web-blog/internal/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -14,7 +15,7 @@ type Claims struct {
 }
 
 func GenerateToken(userID uint) (string, error) {
-	secret := os.Getenv("JWT_SECRET")
+	secret := config.Get().JwtSecret
 	if secret == "" {
 		return "", errors.New("JWT_SECRET missing")
 	}

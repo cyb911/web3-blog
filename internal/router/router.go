@@ -28,11 +28,11 @@ func SetupRouter() *gin.Engine {
 	// 注册
 	r.POST("/api/register", handlers.Register)
 	// 登录操作
-	r.POST("/api/login", func(c *gin.Context) {
-		utils.OkMsg(c, "登录功能开发中。。。。。。")
-	})
+	r.POST("/api/login", handlers.Login)
 
-	// 用户管理模块
+	//用户管理
+
+	// 文章接口
 
 	return r
 }

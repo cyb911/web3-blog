@@ -10,9 +10,10 @@ import (
 )
 
 type Config struct {
-	AppEnv   string
-	AppPort  string
-	MySQLDSN string
+	AppEnv    string
+	AppPort   string
+	MySQLDSN  string
+	JwtSecret string
 }
 
 var (
@@ -36,13 +37,18 @@ func MustLoad() Config {
 	})
 
 	cfg = &Config{
-		AppEnv:   getEnvDefault("APP_ENV", "dev"),
-		AppPort:  getEnvDefault("APP_PORT", "8080"),
-		MySQLDSN: os.Getenv("MYSQL_DSN"),
+		AppEnv:    getEnvDefault("APP_ENV", "dev"),
+		AppPort:   getEnvDefault("APP_PORT", "8080"),
+		MySQLDSN:  os.Getenv("MYSQL_DSN"),
+		JwtSecret: os.Getenv("JWT_SECRET"),
 	}
 
 	if cfg.MySQLDSN == "" {
 		log.Fatal("配置错误：缺少 MYSQL_DSN")
+	}
+
+	if cfg.JwtSecret == "" {
+		log.Fatal("配置错误：缺少 JWT_SECRET")
 	}
 
 	return *cfg
