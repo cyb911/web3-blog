@@ -4,19 +4,39 @@ import (
 	"fmt"
 	"strconv"
 	"web-blog/internal/config"
+	"web-blog/internal/middleware"
 	"web-blog/internal/models"
 	"web-blog/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-type Post struct {
+type CreatePostReq struct {
 	Title   string `json:"title" binding:"required,min=1,max=225"`
 	Content string `json:"content" binding:"required"`
 }
 
 func CreatePost(c *gin.Context) {
-	utils.OkMsg(c, "待开发")
+	var req CreatePostReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		if err.Error() == "EOF" {
+			utils.FailMsg(c, "P00001", "请填写参数！")
+		} else {
+			utils.FailMsg(c, "P00001", err.Error())
+		}
+		return
+	}
+	userId := middleware.MustGetUserID(c)
+	post := models.Post{
+		Title:   req.Title,
+		Content: req.Content,
+		UserId:  userId,
+	}
+	if err := config.DB.Create(&post).Error; err != nil {
+		panic(err)
+	}
+	utils.Ok(c)
 }
 
 func ListPosts(c *gin.Context) {
@@ -35,7 +55,16 @@ func ListPosts(c *gin.Context) {
 }
 
 func GetPost(c *gin.Context) {
-	utils.OkMsg(c, "待开发")
+	id := c.Param("id")
+	var post models.Post
+	if err := config.DB.Preload("Author").Where("id = ?", id).First(&post).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			utils.FailMsg(c, "P000003", "文章不存在")
+			return
+		}
+		panic(err)
+	}
+	utils.OkData(c, post)
 }
 
 func UpdatePost(c *gin.Context) {
