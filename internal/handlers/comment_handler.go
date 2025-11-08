@@ -45,7 +45,7 @@ func CreateComment(c *gin.Context) {
 func ListComments(c *gin.Context) {
 	postID := c.Param("id")
 	var list []models.Comment
-	if err := config.DB.
+	if err := config.DB.Preload("User").
 		Where("post_id = ?", postID).
 		Order("id ASC").Find(&list).Error; err != nil {
 		panic(err)
