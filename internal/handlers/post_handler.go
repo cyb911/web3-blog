@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"strconv"
 	"web-blog/internal/config"
 	"web-blog/internal/middleware"
@@ -69,12 +68,55 @@ func GetPost(c *gin.Context) {
 
 func UpdatePost(c *gin.Context) {
 	id := c.Param("id")
-	fmt.Println(id)
-	utils.OkMsg(c, "待开发")
+	var post models.Post
+	if err := config.DB.Where("id = ?", id).First(&post).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			utils.FailMsg(c, "P000003", "文章不存在")
+			return
+		}
+		panic(err)
+	}
+	userId := middleware.MustGetUserID(c)
+	if post.UserId != userId {
+		utils.FailMsg(c, "P000003", "你不是文章的所有者。")
+		return
+	}
+	var req CreatePostReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		if err.Error() == "EOF" {
+			utils.FailMsg(c, "P00001", "请填写参数！")
+		} else {
+			utils.FailMsg(c, "P00001", err.Error())
+		}
+		return
+	}
+
+	post.Title = req.Title
+	post.Content = req.Content
+	if err := config.DB.Save(&post).Error; err != nil {
+		panic(err)
+	}
+	utils.Ok(c)
 }
 
 func DeletePost(c *gin.Context) {
 	id := c.Param("id")
-	fmt.Println(id)
-	utils.OkMsg(c, "待开发")
+	var post models.Post
+	if err := config.DB.Where("id = ?", id).First(&post).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			utils.FailMsg(c, "P000003", "文章不存在")
+			return
+		}
+		panic(err)
+	}
+	userId := middleware.MustGetUserID(c)
+	if post.UserId != userId {
+		utils.FailMsg(c, "P000003", "你不是文章的所有者。")
+		return
+	}
+
+	if err := config.DB.Delete(&post).Error; err != nil {
+		panic(err)
+	}
+	utils.Ok(c)
 }
