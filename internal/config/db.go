@@ -15,7 +15,9 @@ func InitDB() {
 	dsn := Get().MySQLDSN
 	var err error
 	// 注意:=形式，会导致全局变量DB未正确赋值
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true, //禁止迁移期间创建表时使用外键约束
+	})
 
 	if err != nil {
 		log.Fatalf("连接数据库失败: %v", err)

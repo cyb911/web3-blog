@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"strconv"
+	"web-blog/internal/config"
+	"web-blog/internal/models"
 	"web-blog/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +20,18 @@ func CreatePost(c *gin.Context) {
 }
 
 func ListPosts(c *gin.Context) {
-	utils.OkMsg(c, "待开发")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	var posts []models.Post
+	err := config.DB.Preload("Author").Order("id desc").Limit(limit).Offset(offset).
+		Find(&posts).Error
+
+	if err != nil {
+		panic(err)
+	}
+
+	utils.OkData(c, posts)
 }
 
 func GetPost(c *gin.Context) {
