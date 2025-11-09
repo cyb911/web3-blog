@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"web-blog/internal/config"
+	"web-blog/internal/models"
 	"web-blog/internal/router"
 )
 
@@ -12,11 +13,11 @@ func main() {
 
 	var err error
 
-	//err = config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Comment{})
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
+	err = config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Comment{})
+
+	if err != nil {
+		panic(err)
+	}
 
 	cfg := config.Get()
 
