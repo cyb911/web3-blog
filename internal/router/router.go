@@ -32,6 +32,11 @@ func SetupRouter() *gin.Engine {
 	// 登录操作
 	r.POST("/api/login", handlers.Login)
 
+	authGroup := r.Group("/auth")
+	{
+		authGroup.GET("/nonce", handlers.GetNonce)
+	}
+
 	// 文章查询
 	r.GET("/api/posts", handlers.ListPosts)
 	r.GET("/api/posts/:id", handlers.GetPost)
