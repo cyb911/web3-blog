@@ -2,26 +2,42 @@ package utils
 
 import (
 	"net/http"
+	"web-blog/internal/constants"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Ok(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"code": "S00000", "msg": "success"})
+type Response struct {
+	Code string      `json:"code"`
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data,omitempty"`
 }
 
-func OkMsg(c *gin.Context, msg string) {
-	c.JSON(http.StatusOK, gin.H{"code": "S00000", "msg": msg})
+func Ok(c *gin.Context) {
+	c.JSON(http.StatusOK, Response{
+		Code: constants.SuccessCode,
+		Msg:  "success",
+	})
 }
 
 func OkData(c *gin.Context, data any) {
-	c.JSON(http.StatusOK, gin.H{"code": "S00000", "msg": "success", "data": data})
+	c.JSON(http.StatusOK, Response{
+		Code: constants.SuccessCode,
+		Msg:  "success",
+		Data: data,
+	})
 }
 
 func Fail(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"code": -1, "msg": "Fail"})
+	c.JSON(http.StatusBadRequest, Response{
+		Code: constants.FailCode,
+		Msg:  "fail",
+	})
 }
 
 func FailMsg(c *gin.Context, errCode string, msg string) {
-	c.JSON(http.StatusOK, gin.H{"code": errCode, "msg": msg})
+	c.JSON(http.StatusBadRequest, Response{
+		Code: errCode,
+		Msg:  msg,
+	})
 }

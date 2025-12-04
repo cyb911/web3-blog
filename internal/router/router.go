@@ -24,7 +24,7 @@ func SetupRouter() *gin.Engine {
 
 	// 测试
 	r.GET("/health", func(c *gin.Context) {
-		utils.OkMsg(c, "health!")
+		utils.Ok(c)
 	})
 
 	// 注册

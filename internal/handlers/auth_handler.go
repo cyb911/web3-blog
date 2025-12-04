@@ -50,7 +50,7 @@ func Register(c *gin.Context) {
 		utils.FailMsg(c, "P00003", "注册用户失败！")
 	}
 
-	utils.OkMsg(c, "注册成功！")
+	utils.Ok(c)
 
 }
 
