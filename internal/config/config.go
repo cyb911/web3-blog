@@ -27,7 +27,7 @@ var (
 	once sync.Once
 )
 
-func MustLoad() *Config {
+func MustLoad() Config {
 	once.Do(func() {
 		loadEnvFiles()
 
@@ -46,15 +46,15 @@ func MustLoad() *Config {
 		validateConfig(cfg)
 	})
 
-	return cfg
+	return *cfg
 }
 
-func Get() *Config {
+func Get() Config {
 	if cfg == nil {
 		return MustLoad()
 	}
 
-	return cfg
+	return *cfg
 }
 
 // findEnvFile 从当前目录向上查找 .env 文件
