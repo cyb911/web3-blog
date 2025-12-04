@@ -4,7 +4,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -14,6 +16,10 @@ type Config struct {
 	AppPort   string
 	MySQLDSN  string
 	JwtSecret string
+
+	RedisAddr     string
+	RedisPassword string
+	RedisDB       int
 }
 
 var (
@@ -21,45 +27,34 @@ var (
 	once sync.Once
 )
 
-func MustLoad() Config {
+func MustLoad() *Config {
 	once.Do(func() {
-		envPath := findEnvFile()
-		if envPath != "" {
-			err := godotenv.Load(envPath)
-			if err != nil {
-				log.Printf("加载 .env 文件失败: %v", err)
-			} else {
-				log.Printf("加载 .env 文件成功:%s", envPath)
-			}
-		} else {
-			log.Println("未找到 .env 文件，使用系统环境变量")
+		loadEnvFiles()
+
+		cfg = &Config{
+			AppEnv:    getEnv("APP_ENV", "dev"),
+			AppPort:   getEnv("APP_PORT", "8080"),
+			MySQLDSN:  getEnv("MYSQL_DSN", ""),
+			JwtSecret: getEnv("JWT_SECRET", ""),
+
+			RedisAddr:     getEnv("REDIS_ADDR", "127.0.0.1:6379"),
+			RedisPassword: getEnv("REDIS_PASSWORD", ""),
+			RedisDB:       getEnv("REDIS_DB", 0),
 		}
+
+		// 校验 config
+		validateConfig(cfg)
 	})
 
-	cfg = &Config{
-		AppEnv:    getEnvDefault("APP_ENV", "dev"),
-		AppPort:   getEnvDefault("APP_PORT", "8080"),
-		MySQLDSN:  os.Getenv("MYSQL_DSN"),
-		JwtSecret: os.Getenv("JWT_SECRET"),
-	}
-
-	if cfg.MySQLDSN == "" {
-		log.Fatal("配置错误：缺少 MYSQL_DSN")
-	}
-
-	if cfg.JwtSecret == "" {
-		log.Fatal("配置错误：缺少 JWT_SECRET")
-	}
-
-	return *cfg
+	return cfg
 }
 
-func Get() Config {
+func Get() *Config {
 	if cfg == nil {
 		return MustLoad()
 	}
 
-	return *cfg
+	return cfg
 }
 
 // findEnvFile 从当前目录向上查找 .env 文件
@@ -77,9 +72,80 @@ func findEnvFile() string {
 	return ""
 }
 
-func getEnvDefault(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
+func loadEnvFiles() {
+	envPath := findEnvFile()
+	if envPath != "" {
+		if err := godotenv.Load(envPath); err != nil {
+			log.Printf("加载 .env 文件失败: %v", err)
+		} else {
+			log.Printf("加载 .env 文件成功: %s", envPath)
+		}
+	} else {
+		log.Println("未找到 .env 文件，使用系统环境变量")
 	}
-	return def
+}
+
+// 读取 env 配置数据。def 来在编译期确定类型
+func getEnv[T any](key string, def T) T {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+
+	var result any
+
+	switch any(def).(type) {
+	case string:
+		result = v
+	case int:
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			result = def
+		} else {
+			result = n
+		}
+	case uint:
+		n, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			result = def
+		} else {
+			result = uint(n)
+		}
+	case float64:
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			result = def
+		} else {
+			result = f
+		}
+	case bool:
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			result = def
+		} else {
+			result = b
+		}
+	case time.Duration:
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			result = def
+		} else {
+			result = d
+		}
+	default:
+		// 不支持的类型
+		return def
+	}
+
+	return result.(T)
+
+}
+
+func validateConfig(c *Config) {
+	if c.MySQLDSN == "" {
+		panic("配置错误：缺少 MYSQL_DSN")
+	}
+	if c.JwtSecret == "" {
+		panic("配置错误：缺少 JWT_SECRET")
+	}
 }
